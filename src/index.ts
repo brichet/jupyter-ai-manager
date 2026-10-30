@@ -17,7 +17,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
     commandsPalette: ICommandPalette | null,
     translator_: ITranslator | null
   ) => {
-    const { AIManager } = await import('./widget');
+    const { AIManager } = await import('./manager');
 
     const translator = translator_ ?? nullTranslator;
     const trans = translator.load('jupyter-ai');

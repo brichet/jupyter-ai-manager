@@ -57,6 +57,7 @@
         "watch:labextension": "jupyter-builder watch ."
     },
     "dependencies": {
+        "@jupyter/react-components": "^0.17.1",
         "@jupyterlab/application": "^4.0.0",
         "@jupyterlab/apputils": "^4.0.0",
         "@jupyterlab/coreutils": "^6.0.0",
