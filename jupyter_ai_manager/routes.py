@@ -1,4 +1,4 @@
-import importlib.util
+import importlib.metadata
 import json
 import os
 from typing import Any
@@ -46,10 +46,11 @@ AI_EXTENSIONS = [
 ]
 
 
-def _is_installed(import_name: str) -> bool:
+def _is_installed(pip_package: str) -> bool:
     try:
-        return importlib.util.find_spec(import_name) is not None
-    except (ModuleNotFoundError, ValueError):
+        importlib.metadata.version(pip_package)
+        return True
+    except importlib.metadata.PackageNotFoundError:
         return False
 
 
@@ -57,7 +58,7 @@ class ExtensionsRouteHandler(APIHandler):
     @tornado.web.authenticated
     def get(self):
         extensions = [
-            {**ext, "installed": _is_installed(ext["import_name"])}
+            {**ext, "installed": _is_installed(ext["pip_package"])}
             for ext in AI_EXTENSIONS
         ]
         self.finish({"extensions": extensions})
@@ -74,7 +75,11 @@ class LoadExtensionRouteHandler(APIHandler):
             self.finish({"message": "Missing import_name"})
             return
 
-        if not _is_installed(import_name):
+        pip_package = next(
+            (e["pip_package"] for e in AI_EXTENSIONS if e["import_name"] == import_name),
+            None,
+        )
+        if pip_package is None or not _is_installed(pip_package):
             self.set_status(404)
             self.finish({"message": f"Package '{import_name}' is not installed"})
             return
