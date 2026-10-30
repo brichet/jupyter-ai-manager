@@ -7631,9 +7631,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jupyter-ai-installer@workspace:.":
+"jupyter-ai-manager@workspace:.":
   version: 0.0.0-use.local
-  resolution: "jupyter-ai-installer@workspace:."
+  resolution: "jupyter-ai-manager@workspace:."
   dependencies:
     "@eslint/js": ^9.0.0
     "@jupyter/builder": ^1.2.0

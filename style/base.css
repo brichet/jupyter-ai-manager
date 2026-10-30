@@ -1,20 +1,20 @@
-.jp-jupyter-ai-installer-Widget {
+.jp-jupyter-ai-manager-Widget {
   overflow-y: auto;
 }
 
-.jp-jupyter-ai-installer-container {
+.jp-jupyter-ai-manager-container {
   padding: 16px;
   max-width: 640px;
 }
 
-.jp-jupyter-ai-installer-header {
+.jp-jupyter-ai-manager-header {
   font-size: var(--jp-ui-font-size3);
   font-weight: 600;
   margin: 0 0 16px;
   color: var(--jp-ui-font-color0);
 }
 
-.jp-jupyter-ai-installer-list {
+.jp-jupyter-ai-manager-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -23,7 +23,7 @@
   gap: 8px;
 }
 
-.jp-jupyter-ai-installer-item {
+.jp-jupyter-ai-manager-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -33,44 +33,44 @@
   background: var(--jp-layout-color1);
 }
 
-.jp-jupyter-ai-installer-info {
+.jp-jupyter-ai-manager-info {
   flex: 1;
   min-width: 0;
   margin-right: 12px;
 }
 
-.jp-jupyter-ai-installer-name {
+.jp-jupyter-ai-manager-name {
   display: block;
   font-weight: 600;
   font-size: var(--jp-ui-font-size1);
   color: var(--jp-ui-font-color0);
 }
 
-.jp-jupyter-ai-installer-description {
+.jp-jupyter-ai-manager-description {
   margin: 4px 0 0;
   font-size: var(--jp-ui-font-size0);
   color: var(--jp-ui-font-color2);
 }
 
-.jp-jupyter-ai-installer-badge {
+.jp-jupyter-ai-manager-badge {
   font-size: var(--jp-ui-font-size0);
   color: var(--jp-success-color1);
   white-space: nowrap;
 }
 
-.jp-jupyter-ai-installer-unavailable {
+.jp-jupyter-ai-manager-unavailable {
   font-size: var(--jp-ui-font-size0);
   color: var(--jp-ui-font-color2);
   white-space: nowrap;
 }
 
-.jp-jupyter-ai-installer-error {
+.jp-jupyter-ai-manager-error {
   color: var(--jp-error-color1);
   font-size: var(--jp-ui-font-size0);
   margin-top: 4px;
 }
 
-.jp-jupyter-ai-installer-empty {
+.jp-jupyter-ai-manager-empty {
   color: var(--jp-ui-font-color2);
   font-size: var(--jp-ui-font-size1);
 }

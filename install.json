@@ -1,5 +1,5 @@
 {
   "packageManager": "python",
-  "packageName": "jupyter_ai_installer",
-  "uninstallInstructions": "Use your Python package manager (pip, conda, etc.) to uninstall the package jupyter_ai_installer"
+  "packageName": "jupyter_ai_manager",
+  "uninstallInstructions": "Use your Python package manager (pip, conda, etc.) to uninstall the package jupyter_ai_manager"
 }

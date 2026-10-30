@@ -18,7 +18,7 @@ export async function requestAPI<T>(
   // Make request to Jupyter API
   const requestUrl = URLExt.join(
     serverSettings.baseUrl,
-    'jupyter-ai-installer', // our server extension's API namespace
+    'jupyter-ai-manager', // our server extension's API namespace
     endPoint
   );
 

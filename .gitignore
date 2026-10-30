@@ -7,9 +7,9 @@ node_modules/
 *.egg-info/
 .ipynb_checkpoints
 *.tsbuildinfo
-jupyter_ai_installer/labextension
+jupyter_ai_manager/labextension
 # Version file is handled by hatchling
-jupyter_ai_installer/_version.py
+jupyter_ai_manager/_version.py
 
 # Integration tests
 ui-tests/test-results/

@@ -110,17 +110,17 @@ npx tsc --noEmit src/index.ts  # Check single file
 npx tsc --noEmit               # Check all files
 ```
 
-After editing Python files (like `jupyter_ai_installer/routes.py`):
+After editing Python files (like `jupyter_ai_manager/routes.py`):
 
 ```bash
-python -m py_compile jupyter_ai_installer/__init__.py  # Check single file for syntax errors
+python -m py_compile jupyter_ai_manager/__init__.py  # Check single file for syntax errors
 ```
 
 ## Coding Standards
 
 ### Naming Conventions
 
-**Python** (in `jupyter_ai_installer/*.py` files):
+**Python** (in `jupyter_ai_manager/*.py` files):
 
 - **✅ Do**: Use PEP 8 style with 4-space indentation
   - Classes: `DataProcessor`, `UserDataRouteHandler`
@@ -155,7 +155,7 @@ function activate(app: JupyterFrontEnd): void {}
 
 **✅ Do**: Keep backend and frontend logic separate
 
-- Backend processing in `jupyter_ai_installer/routes.py`
+- Backend processing in `jupyter_ai_manager/routes.py`
 - Frontend calls in `src/request.ts` using `requestAPI()`
 
 **❌ Don't**: Duplicate business logic across TypeScript and Python
@@ -170,7 +170,7 @@ function activate(app: JupyterFrontEnd): void {}
 
 **Python package** (directory name and imports):
 
-- **✅ Do**: `jupyter_ai_installer/` with underscores, all lowercase
+- **✅ Do**: `jupyter_ai_manager/` with underscores, all lowercase
 - **❌ Don't**: Use dashes in any Python file or directory names
 
 **PyPI distribution name** (in `pyproject.toml`):
@@ -188,7 +188,7 @@ function activate(app: JupyterFrontEnd): void {}
 **✅ Do**: Define plugin ID in `src/index.ts`:
 
 ```typescript
-const PLUGIN_ID = 'jupyter_ai_installer:plugin';
+const PLUGIN_ID = 'jupyter_ai_manager:plugin';
 ```
 
 **✅ Do**: For extensions with multiple commands, create a `src/commands.ts` module to centralize command definitions:
@@ -200,8 +200,8 @@ import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 
 // Command IDs
 export namespace CommandIDs {
-  export const openPanel = 'jupyter_ai_installer:open-panel';
-  export const refreshData = 'jupyter_ai_installer:refresh-data';
+  export const openPanel = 'jupyter_ai_manager:open-panel';
+  export const refreshData = 'jupyter_ai_manager:refresh-data';
 }
 
 // Command argument types
@@ -251,7 +251,7 @@ import {
 import { registerCommands, CommandIDs, CommandArguments } from './commands';
 
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupyter_ai_installer:plugin',
+  id: 'jupyter_ai_manager:plugin',
   autoStart: true,
   activate: (app: JupyterFrontEnd) => {
     // Register all commands with JupyterLab's command registry
@@ -301,9 +301,9 @@ await app.commands.execute(CommandIDs.refreshData);
 - Widget components: `src/widgets/DataPanel.tsx` (class `DataPanel`)
 - Command definitions (for multiple commands): `src/commands.ts` with `COMMANDS` mapping
 - API utilities: `src/api.ts` (not `src/utils.ts`)
-- Backend routes: `jupyter_ai_installer/routes.py` (class `DataRouteHandler`)
+- Backend routes: `jupyter_ai_manager/routes.py` (class `DataRouteHandler`)
 - Frontend logic: `src/` directory
-- Python package: `jupyter_ai_installer/` directory
+- Python package: `jupyter_ai_manager/` directory
 
 **❌ Don't**: Create catch-all files or directories like `utils.ts` or `helpers.py` or `handlers.py` — partition by feature instead
 
@@ -313,7 +313,7 @@ await app.commands.execute(CommandIDs.refreshData);
 
 When connecting frontend and backend, **ALWAYS follow this order**:
 
-1. **Read the backend first** — Check `jupyter_ai_installer/routes.py` to understand the existing API contract
+1. **Read the backend first** — Check `jupyter_ai_manager/routes.py` to understand the existing API contract
 2. **Write frontend to match** — Create TypeScript interfaces in `src/api.ts` that match backend responses exactly
 3. **Or modify backend intentionally** — If changing the backend, update it first, then write matching frontend code
 
@@ -321,7 +321,7 @@ When connecting frontend and backend, **ALWAYS follow this order**:
 
 ### Backend Routes
 
-Create RESTful endpoints in `jupyter_ai_installer/routes.py`:
+Create RESTful endpoints in `jupyter_ai_manager/routes.py`:
 
 **✅ Do**: Extend `APIHandler` from `jupyter_server.base.handlers`
 
@@ -346,7 +346,7 @@ class DataRouteHandler(APIHandler):
 
 def setup_route_handlers(web_app):
     base_url = web_app.settings.get("base_url", "/")
-    data_route = url_path_join(base_url, "jupyter_ai_installer", "data")
+    data_route = url_path_join(base_url, "jupyter_ai_manager", "data")
     web_app.add_handlers(r".*$", [(data_route, DataRouteHandler)])
 ```
 
@@ -428,7 +428,7 @@ export async function fetchData(
 
 - Match JSON keys: `{"result": ...}` in Python → `response.result` in TypeScript
 - Update TypeScript interfaces when changing Python responses
-- Define matching endpoint path strings (e.g., `"hello"`, `"get-data"`) in both `jupyter_ai_installer/routes.py` and `src/api.ts` to ensure routes sync between backend and frontend
+- Define matching endpoint path strings (e.g., `"hello"`, `"get-data"`) in both `jupyter_ai_manager/routes.py` and `src/api.ts` to ensure routes sync between backend and frontend
 
 **❌ Don't**:
 
@@ -468,7 +468,7 @@ source <path-to-venv>/bin/activate  # On macOS/Linux
 **When implementing a new feature from scratch, follow this complete sequence:**
 
 1. **Activate environment** (see above — required first!)
-2. **Write the code** (TypeScript in `src/`, styles in `style/`, Python in `jupyter_ai_installer/`)
+2. **Write the code** (TypeScript in `src/`, styles in `style/`, Python in `jupyter_ai_manager/`)
 3. **Install dependencies** (if you added any to `package.json`):
    ```bash
    jlpm install
@@ -481,7 +481,7 @@ source <path-to-venv>/bin/activate  # On macOS/Linux
    ```bash
    pip install -e .
    jupyter-builder develop . --overwrite
-   jupyter server extension enable jupyter_ai_installer
+   jupyter server extension enable jupyter_ai_manager
    ```
 6. **Verify installation**:
    ```bash
@@ -505,7 +505,7 @@ Many issues arise from confusing these two steps:
 #### `jlpm build` — Compiles the Extension. Do this every time you change TypeScript code.
 
 - **What it does**: Compiles TypeScript → JavaScript, bundles the extension
-- **Output**: Creates files in `lib/` and `jupyter_ai_installer/labextension/`
+- **Output**: Creates files in `lib/` and `jupyter_ai_manager/labextension/`
 - **What it does NOT do**: Register the extension with JupyterLab
 
 #### `pip install -e .` + `jupyter-builder develop .` — Registers the Extension. Do this once as a setup step.
@@ -526,7 +526,7 @@ Many issues arise from confusing these two steps:
 ```bash
 pip install -e ".[dev,test]"
 jupyter-builder develop . --overwrite
-jupyter server extension enable jupyter_ai_installer
+jupyter server extension enable jupyter_ai_manager
 ```
 
 ### Iterative Development
@@ -550,7 +550,7 @@ jupyter lab
 npx tsc --noEmit src/index.ts       # Check single file
 ```
 
-**After editing Python** (files in `jupyter_ai_installer/`):
+**After editing Python** (files in `jupyter_ai_manager/`):
 
 - **Restart the JupyterLab server** (Ctrl+C in terminal, then `jupyter lab` again)
 - No rebuild needed!
@@ -601,7 +601,7 @@ Your extension should appear as **"enabled"** and **"OK"**.
 ```bash
 pip install -e .
 jupyter-builder develop . --overwrite
-jupyter server extension enable jupyter_ai_installer
+jupyter server extension enable jupyter_ai_manager
 ```
 
 **3. Did you restart JupyterLab?**
@@ -612,14 +612,14 @@ jupyter server extension enable jupyter_ai_installer
 **4. Ask user to check the browser console** (F12 or Cmd+Option+I):
 
 - Request user to look for JavaScript errors that might prevent extension activation
-- Ask user to search for the extension ID (`jupyter_ai_installer`) to see if it loaded
+- Ask user to search for the extension ID (`jupyter_ai_manager`) to see if it loaded
 - Ask user to report any error messages or warnings
 
 **5. Verify the build output:**
 
 ```bash
 ls -la lib/                          # Should contain compiled .js files
-ls -la jupyter_ai_installer/labextension/  # Should contain bundled extension
+ls -la jupyter_ai_manager/labextension/  # Should contain bundled extension
 ```
 
 **6. If still not working**, try a clean rebuild following the reset instructions below
@@ -640,7 +640,7 @@ jlpm install         # Only needed if you used 'git clean -fdX'
 jlpm build
 pip install -e ".[dev,test]"
 jupyter-builder develop . --overwrite
-jupyter server extension enable jupyter_ai_installer
+jupyter server extension enable jupyter_ai_manager
 ```
 
 ### Environment Notes
@@ -657,8 +657,8 @@ jupyter server extension enable jupyter_ai_installer
 **✅ Do**: Follow the template structure
 
 - Keep configuration files in project root: `package.json`, `pyproject.toml`, `tsconfig.json`
-- Backend routes: `jupyter_ai_installer/routes.py`
-- Server extension config: `jupyter-config/server-config/jupyter_ai_installer.json`
+- Backend routes: `jupyter_ai_manager/routes.py`
+- Server extension config: `jupyter-config/server-config/jupyter_ai_manager.json`
 - Frontend code: `src/index.ts` and other `src/` files
 - Styles: `style/index.css`
 - Settings schema: `schema/plugin.json`
@@ -689,7 +689,7 @@ jupyter server extension enable jupyter_ai_installer
 
 **❌ Don't**: Build complex features without incremental testing
 
-**❌ Don't**: Write frontend interfaces without first checking the backend API contract in `jupyter_ai_installer/routes.py`
+**❌ Don't**: Write frontend interfaces without first checking the backend API contract in `jupyter_ai_manager/routes.py`
 
 ## Common Pitfalls
 
@@ -736,7 +736,7 @@ try {
 **✅ Do**: Namespace all CSS in `style/index.css`
 
 ```css
-.jp-jupyter-ai-installer-widget {
+.jp-jupyter-ai-manager-widget {
   padding: 8px;
 }
 ```
@@ -764,7 +764,7 @@ dispose(): void {
 from .routes import setup_route_handlers
 ```
 
-**❌ Don't**: Use absolute imports like `from jupyter_ai_installer.routes import ...`
+**❌ Don't**: Use absolute imports like `from jupyter_ai_manager.routes import ...`
 
 ## Quick Reference
 
@@ -772,12 +772,12 @@ from .routes import setup_route_handlers
 
 Use these patterns consistently throughout your code:
 
-- **Plugin ID** (in `src/index.ts`): `'jupyter_ai_installer:plugin'`
-- **Command IDs** (in `src/commands.ts` or `src/index.ts`): `'jupyter_ai_installer:command-name'`
+- **Plugin ID** (in `src/index.ts`): `'jupyter_ai_manager:plugin'`
+- **Command IDs** (in `src/commands.ts` or `src/index.ts`): `'jupyter_ai_manager:command-name'`
   - For multiple commands, create `src/commands.ts` with a centralized `COMMANDS` mapping
   - For 1-2 commands, define directly in `src/index.ts`
-- **CSS classes** (in `style/index.css`): `.jp-jupyter-ai-installer-ClassName`
-- **API routes** (in `jupyter_ai_installer/routes.py`): `url_path_join(base_url, "jupyter_ai_installer", "endpoint")`
+- **CSS classes** (in `style/index.css`): `.jp-jupyter-ai-manager-ClassName`
+- **API routes** (in `jupyter_ai_manager/routes.py`): `url_path_join(base_url, "jupyter_ai_manager", "endpoint")`
 
 ### Essential Commands
 

@@ -1,7 +1,7 @@
 {
   "jupyter.lab.shortcuts": [],
-  "title": "jupyter-ai-installer",
-  "description": "jupyter-ai-installer settings.",
+  "title": "jupyter-ai-manager",
+  "description": "jupyter-ai-manager settings.",
   "type": "object",
   "properties": {},
   "additionalProperties": false

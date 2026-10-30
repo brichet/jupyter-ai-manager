@@ -1,15 +1,15 @@
 {
-    "name": "jupyter-ai-installer",
+    "name": "jupyter-ai-manager",
     "version": "0.1.0",
-    "description": "A JupyterLab extension to configure AI packages",
+    "description": "A JupyterLab extension to install AI packages",
     "keywords": [
         "jupyter",
         "jupyterlab",
         "jupyterlab-extension"
     ],
-    "homepage": "https://github.com/brichet/jupyter-ai-installer",
+    "homepage": "https://github.com/brichet/jupyter-ai-manager",
     "bugs": {
-        "url": "https://github.com/brichet/jupyter-ai-installer/issues"
+        "url": "https://github.com/brichet/jupyter-ai-manager/issues"
     },
     "license": "BSD-3-Clause",
     "author": {
@@ -27,7 +27,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": "https://github.com/brichet/jupyter-ai-installer.git"
+        "url": "https://github.com/brichet/jupyter-ai-manager.git"
     },
     "scripts": {
         "build": "jlpm build:lib && jlpm build:labextension:dev",
@@ -39,7 +39,7 @@
         "clean": "jlpm clean:lib",
         "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
         "clean:lintcache": "rimraf .eslintcache .stylelintcache",
-        "clean:labextension": "rimraf jupyter_ai_installer/labextension jupyter_ai_installer/_version.py",
+        "clean:labextension": "rimraf jupyter_ai_manager/labextension jupyter_ai_manager/_version.py",
         "clean:all": "jlpm clean:lib && jlpm clean:labextension && jlpm clean:lintcache",
         "eslint": "jlpm eslint:check --fix",
         "eslint:check": "eslint . --cache",
@@ -110,12 +110,12 @@
                     "pip"
                 ],
                 "base": {
-                    "name": "jupyter_ai_installer"
+                    "name": "jupyter_ai_manager"
                 }
             }
         },
         "extension": true,
-        "outputDir": "jupyter_ai_installer/labextension",
+        "outputDir": "jupyter_ai_manager/labextension",
         "schemaDir": "schema"
     },
     "prettier": {

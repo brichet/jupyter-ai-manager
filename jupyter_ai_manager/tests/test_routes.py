@@ -3,7 +3,7 @@ import json
 
 async def test_hello(jp_fetch):
     # When
-    response = await jp_fetch("jupyter-ai-installer", "hello")
+    response = await jp_fetch("jupyter-ai-manager", "hello")
 
     # Then
     assert response.code == 200
@@ -11,7 +11,7 @@ async def test_hello(jp_fetch):
     assert payload == {
             "data": (
                 "Hello, world!"
-                " This is the '/jupyter-ai-installer/hello' endpoint."
+                " This is the '/jupyter-ai-manager/hello' endpoint."
                 " Try visiting me in your browser!"
             ),
         }

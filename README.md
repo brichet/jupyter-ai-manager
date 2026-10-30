@@ -1,12 +1,12 @@
-# jupyter_ai_installer
+# jupyter_ai_manager
 
-[![Github Actions Status](https://github.com/brichet/jupyter-ai-installer/workflows/Build/badge.svg)](https://github.com/brichet/jupyter-ai-installer/actions/workflows/build.yml)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brichet/jupyter-ai-installer/main?urlpath=lab)
+[![Github Actions Status](https://github.com/brichet/jupyter-ai-manager/workflows/Build/badge.svg)](https://github.com/brichet/jupyter-ai-manager/actions/workflows/build.yml)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brichet/jupyter-ai-manager/main?urlpath=lab)
 
 A JupyterLab extension to configure AI packages
 
-This extension is composed of a Python package named `jupyter_ai_installer`
-for the server extension and a NPM package named `jupyter-ai-installer`
+This extension is composed of a Python package named `jupyter_ai_manager`
+for the server extension and a NPM package named `jupyter-ai-manager`
 for the frontend extension.
 
 ## Requirements
@@ -18,7 +18,7 @@ for the frontend extension.
 To install the extension, execute:
 
 ```bash
-pip install jupyter_ai_installer
+pip install jupyter_ai_manager
 ```
 
 ## Uninstall
@@ -26,7 +26,7 @@ pip install jupyter_ai_installer
 To remove the extension, execute:
 
 ```bash
-pip uninstall jupyter_ai_installer
+pip uninstall jupyter_ai_manager
 ```
 
 ## Troubleshoot

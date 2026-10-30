@@ -3,6 +3,6 @@ node_modules
 **/lib
 **/package.json
 !/package.json
-jupyter_ai_installer
+jupyter_ai_manager
 eslint.config.mjs
 .venv

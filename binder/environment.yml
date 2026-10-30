@@ -1,10 +1,10 @@
-# a mybinder.org-ready environment for demoing jupyter_ai_installer
+# a mybinder.org-ready environment for demoing jupyter_ai_manager
 # this environment may also be used locally on Linux/MacOS/Windows, e.g.
 #
 #   conda env update --file binder/environment.yml
-#   conda activate jupyter-ai-installer-demo
+#   conda activate jupyter-ai-manager-demo
 #
-name: jupyter-ai-installer-demo
+name: jupyter-ai-manager-demo
 
 channels:
   - conda-forge

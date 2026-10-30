@@ -10,10 +10,10 @@ has_ai_rules: true
 has_binder: true
 has_settings: true
 kind: frontend-and-server
-labextension_name: jupyter-ai-installer
+labextension_name: jupyter-ai-manager
 project_short_description: A JupyterLab extension to configure AI packages
-python_name: jupyter_ai_installer
-repository: https://github.com/brichet/jupyter-ai-installer
+python_name: jupyter_ai_manager
+repository: https://github.com/brichet/jupyter-ai-manager
 test: true
 yarn_linker: node-modules
 

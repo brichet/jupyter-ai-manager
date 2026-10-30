@@ -9,15 +9,15 @@ import {
   loadExtensionHandlers
 } from './api';
 
-export interface IInstallerWidgetOptions {
+export interface IAIManagerOptions {
   trans: TranslationBundle;
 }
 
-export class InstallerWidget extends Widget {
-  constructor(options: IInstallerWidgetOptions) {
+export class AIManager extends Widget {
+  constructor(options: IAIManagerOptions) {
     super();
     this._trans = options.trans;
-    this.addClass('jp-jupyter-ai-installer-Widget');
+    this.addClass('jp-jupyter-ai-manager-Widget');
     void this._init();
   }
 
@@ -31,10 +31,7 @@ export class InstallerWidget extends Widget {
       this._renderError(
         err instanceof Error ? err.message : 'Failed to load extensions.'
       );
-      console.error(
-        'jupyter-ai-installer: failed to fetch extension list',
-        err
-      );
+      console.error('jupyter-ai-manager: failed to fetch extension list', err);
       return;
     }
 
@@ -43,21 +40,21 @@ export class InstallerWidget extends Widget {
 
   private _render(extensions: IAIExtension[]): void {
     const container = document.createElement('div');
-    container.className = 'jp-jupyter-ai-installer-container';
+    container.className = 'jp-jupyter-ai-manager-container';
 
     const header = document.createElement('h2');
-    header.className = 'jp-jupyter-ai-installer-header';
+    header.className = 'jp-jupyter-ai-manager-header';
     header.textContent = this._trans.__('AI Extensions');
     container.appendChild(header);
 
     if (extensions.length === 0) {
       const empty = document.createElement('p');
-      empty.className = 'jp-jupyter-ai-installer-empty';
+      empty.className = 'jp-jupyter-ai-manager-empty';
       empty.textContent = this._trans.__('No AI extensions available.');
       container.appendChild(empty);
     } else {
       const list = document.createElement('ul');
-      list.className = 'jp-jupyter-ai-installer-list';
+      list.className = 'jp-jupyter-ai-manager-list';
       for (const ext of extensions) {
         list.appendChild(this._renderItem(ext));
       }
@@ -69,18 +66,18 @@ export class InstallerWidget extends Widget {
 
   private _renderItem(ext: IAIExtension): HTMLLIElement {
     const item = document.createElement('li');
-    item.className = 'jp-jupyter-ai-installer-item';
+    item.className = 'jp-jupyter-ai-manager-item';
 
     const info = document.createElement('div');
-    info.className = 'jp-jupyter-ai-installer-info';
+    info.className = 'jp-jupyter-ai-manager-info';
 
     const name = document.createElement('span');
-    name.className = 'jp-jupyter-ai-installer-name';
+    name.className = 'jp-jupyter-ai-manager-name';
     name.textContent = ext.name;
     info.appendChild(name);
 
     const description = document.createElement('p');
-    description.className = 'jp-jupyter-ai-installer-description';
+    description.className = 'jp-jupyter-ai-manager-description';
     description.textContent = ext.description;
     info.appendChild(description);
 
@@ -88,13 +85,13 @@ export class InstallerWidget extends Widget {
 
     if (ext.installed) {
       const badge = document.createElement('span');
-      badge.className = 'jp-jupyter-ai-installer-badge';
+      badge.className = 'jp-jupyter-ai-manager-badge';
       badge.textContent = this._trans.__('Installed');
       item.appendChild(badge);
     } else {
       const button = document.createElement('button');
       button.className =
-        'jp-jupyter-ai-installer-btn jp-mod-styled jp-mod-accept';
+        'jp-jupyter-ai-manager-btn jp-mod-styled jp-mod-accept';
       button.textContent = this._trans.__('Install');
       button.addEventListener(
         'click',
@@ -108,7 +105,7 @@ export class InstallerWidget extends Widget {
 
   private _renderError(message: string): void {
     const error = document.createElement('p');
-    error.className = 'jp-jupyter-ai-installer-error';
+    error.className = 'jp-jupyter-ai-manager-error';
     error.textContent = message;
     this.node.appendChild(error);
   }
@@ -134,10 +131,10 @@ export class InstallerWidget extends Widget {
       button.disabled = false;
       button.textContent = this._trans.__('Install');
       const message = err instanceof Error ? err.message : 'Unknown error';
-      console.error(`jupyter-ai-installer: failed to install ${ext.name}`, err);
+      console.error(`jupyter-ai-manager: failed to install ${ext.name}`, err);
 
       const errorEl = document.createElement('p');
-      errorEl.className = 'jp-jupyter-ai-installer-error';
+      errorEl.className = 'jp-jupyter-ai-manager-error';
       errorEl.textContent = `Installation failed: ${message}`;
       item.appendChild(errorEl);
     }

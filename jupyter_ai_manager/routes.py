@@ -82,7 +82,7 @@ class LoadExtensionRouteHandler(APIHandler):
         try:
             _register_server_extension(self.application, self.log)
         except Exception as exc:
-            self.log.exception(f"jupyter_ai_installer: error registering '{import_name}'")
+            self.log.exception(f"jupyter_ai_manager: error registering '{import_name}'")
             self.set_status(500)
             self.finish({"message": f"Failed to register handlers for '{import_name}': {exc}"})
             return
@@ -125,7 +125,7 @@ def _register_server_extension(web_app: Any, log: Any) -> None:
         for ext_name, enabled in configured.items()
         if enabled
         and ext_name not in already_loaded
-        and ext_name != "jupyter_ai_installer"
+        and ext_name != "jupyter_ai_manager"
     ]
 
     for ext_name in to_load:
@@ -159,13 +159,13 @@ def _refresh_persona_managers(web_app: Any, log: Any) -> None:
             try:
                 await pm.refresh_personas()
             except Exception:
-                log.exception("jupyter_ai_installer: error refreshing persona manager")
+                log.exception("jupyter_ai_manager: error refreshing persona manager")
 
     try:
         loop = asyncio.get_event_loop()
         loop.create_task(_refresh_all())
     except Exception:
-        log.exception("jupyter_ai_installer: error scheduling persona refresh")
+        log.exception("jupyter_ai_manager: error scheduling persona refresh")
 
 
 def setup_route_handlers(web_app: Any) -> None:
@@ -174,11 +174,11 @@ def setup_route_handlers(web_app: Any) -> None:
 
     handlers = [
         (
-            url_path_join(base_url, "jupyter-ai-installer", "extensions"),
+            url_path_join(base_url, "jupyter-ai-manager", "extensions"),
             ExtensionsRouteHandler,
         ),
         (
-            url_path_join(base_url, "jupyter-ai-installer", "load"),
+            url_path_join(base_url, "jupyter-ai-manager", "load"),
             LoadExtensionRouteHandler,
         ),
     ]
