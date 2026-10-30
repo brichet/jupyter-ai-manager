@@ -1,0 +1,19 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v4.6.5
+_src_path: https://github.com/jupyterlab/extension-template
+advanced: true
+author_email: jupyter@googlegroups.com
+author_name: Project Jupyter
+create_claude_symlink: true
+create_gemini_symlink: false
+has_ai_rules: true
+has_binder: true
+has_settings: true
+kind: frontend-and-server
+labextension_name: jupyter-ai-installer
+project_short_description: A JupyterLab extension to configure AI packages
+python_name: jupyter_ai_installer
+repository: https://github.com/brichet/jupyter-ai-installer
+test: true
+yarn_linker: node-modules
+
