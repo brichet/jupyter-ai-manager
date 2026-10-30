@@ -1,5 +1,76 @@
-/*
-    See the JupyterLab Developer Guide for useful CSS Patterns:
+.jp-jupyter-ai-installer-Widget {
+  overflow-y: auto;
+}
 
-    https://jupyterlab.readthedocs.io/en/stable/developer/css.html
-*/
+.jp-jupyter-ai-installer-container {
+  padding: 16px;
+  max-width: 640px;
+}
+
+.jp-jupyter-ai-installer-header {
+  font-size: var(--jp-ui-font-size3);
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--jp-ui-font-color0);
+}
+
+.jp-jupyter-ai-installer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-jupyter-ai-installer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 4px;
+  background: var(--jp-layout-color1);
+}
+
+.jp-jupyter-ai-installer-info {
+  flex: 1;
+  min-width: 0;
+  margin-right: 12px;
+}
+
+.jp-jupyter-ai-installer-name {
+  display: block;
+  font-weight: 600;
+  font-size: var(--jp-ui-font-size1);
+  color: var(--jp-ui-font-color0);
+}
+
+.jp-jupyter-ai-installer-description {
+  margin: 4px 0 0;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-jupyter-ai-installer-badge {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-success-color1);
+  white-space: nowrap;
+}
+
+.jp-jupyter-ai-installer-unavailable {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+}
+
+.jp-jupyter-ai-installer-error {
+  color: var(--jp-error-color1);
+  font-size: var(--jp-ui-font-size0);
+  margin-top: 4px;
+}
+
+.jp-jupyter-ai-installer-empty {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+}

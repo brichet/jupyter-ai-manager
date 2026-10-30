@@ -2,42 +2,54 @@ import {
   JupyterFrontEnd,
   JupyterFrontEndPlugin
 } from '@jupyterlab/application';
+import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
-import { ISettingRegistry } from '@jupyterlab/settingregistry';
+const PLUGIN_ID = 'jupyter-ai-installer:plugin';
 
-import { requestAPI } from './request';
-
-/**
- * Initialization data for the jupyter-ai-installer extension.
- */
 const plugin: JupyterFrontEndPlugin<void> = {
-  id: 'jupyter-ai-installer:plugin',
-  description: 'A JupyterLab extension to configure AI packages',
+  id: PLUGIN_ID,
+  optional: [ICommandPalette, ITranslator],
+  description: 'A JupyterLab extension to install AI packages',
   autoStart: true,
-  optional: [ISettingRegistry],
-  activate: (app: JupyterFrontEnd, settingRegistry: ISettingRegistry | null) => {
+  activate: async (
+    app: JupyterFrontEnd,
+    commandsPalette: ICommandPalette | null,
+    translator_: ITranslator | null
+  ) => {
+    const { InstallerWidget } = await import('./widget');
+
+    const translator = translator_ ?? nullTranslator;
+    const trans = translator.load('jupyter-ai');
+
+    const content = new InstallerWidget({ trans });
+    const panel = new MainAreaWidget({ content });
+    panel.title.label = trans.__('AI Extensions');
+    panel.title.closable = true;
+    panel.id = 'jupyter-ai-installer-panel';
+
+    app.commands.addCommand('jupyter-ai-installer:open', {
+      label: trans.__('Open AI Extension Installer'),
+      execute: () => {
+        if (!panel.isAttached) {
+          app.shell.add(panel, 'main');
+        }
+        app.shell.activateById(panel.id);
+      },
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {}
+        }
+      }
+    });
+
+    commandsPalette?.addItem({
+      category: trans.__('jupyter AI'),
+      command: 'jupyter-ai-installer:open'
+    });
+
     console.log('JupyterLab extension jupyter-ai-installer is activated!');
-
-    if (settingRegistry) {
-      settingRegistry
-        .load(plugin.id)
-        .then(settings => {
-          console.log('jupyter-ai-installer settings loaded:', settings.composite);
-        })
-        .catch(reason => {
-          console.error('Failed to load settings for jupyter-ai-installer.', reason);
-        });
-    }
-
-    requestAPI<any>('hello', app.serviceManager.serverSettings)
-      .then(data => {
-        console.log(data);
-      })
-      .catch(reason => {
-        console.error(
-          `The jupyter_ai_installer server extension appears to be missing.\n${reason}`
-        );
-      });
   }
 };
 

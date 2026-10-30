@@ -3,7 +3,6 @@
 [![Github Actions Status](https://github.com/brichet/jupyter-ai-installer/workflows/Build/badge.svg)](https://github.com/brichet/jupyter-ai-installer/actions/workflows/build.yml)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/brichet/jupyter-ai-installer/main?urlpath=lab)
 
-
 A JupyterLab extension to configure AI packages
 
 This extension is composed of a Python package named `jupyter_ai_installer`
