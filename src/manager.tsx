@@ -3,30 +3,68 @@ import React, { useState, useEffect } from 'react';
 import { ReactWidget } from '@jupyterlab/apputils';
 import { ServerConnection } from '@jupyterlab/services';
 import { TranslationBundle } from '@jupyterlab/translation';
+import { CommandRegistry } from '@lumino/commands';
 import { Badge, Button, ProgressRing } from '@jupyter/react-components';
 
-import {
-  IAIExtension,
-  fetchAIExtensions,
-  installExtension,
-  loadExtensionHandlers
-} from './api';
+import { IAIExtension, fetchAIExtensions } from './api';
+import { CommandIDs } from './tokens';
+
+export class ConfirmInstallWidget extends ReactWidget {
+  constructor(
+    private readonly _ext: IAIExtension,
+    private readonly _trans: TranslationBundle
+  ) {
+    super();
+  }
+
+  render(): JSX.Element {
+    return (
+      <div className="jp-jupyter-ai-manager-confirm">
+        <p className="jp-jupyter-ai-manager-description">
+          {this._ext.description}
+        </p>
+        <p className="jp-jupyter-ai-manager-warning">
+          {this._trans.__(
+            'The page will be reloaded automatically after installation.'
+          )}
+        </p>
+      </div>
+    );
+  }
+}
+
+export class InstallProgressWidget extends ReactWidget {
+  constructor(
+    private readonly _name: string,
+    private readonly _trans: TranslationBundle
+  ) {
+    super();
+  }
+
+  render(): JSX.Element {
+    return (
+      <div className="jp-jupyter-ai-manager-installing">
+        <ProgressRing />
+        <span>{this._trans.__('Installing %1\u2026', this._name)}</span>
+      </div>
+    );
+  }
+}
 
 export interface IAIManagerOptions {
+  commands: CommandRegistry;
   trans: TranslationBundle;
 }
 
 function AIManagerComponent({
+  commands,
   trans
 }: {
+  commands: CommandRegistry;
   trans: TranslationBundle;
 }): JSX.Element {
   const [extensions, setExtensions] = useState<IAIExtension[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [installing, setInstalling] = useState<Record<string, boolean>>({});
-  const [installErrors, setInstallErrors] = useState<Record<string, string>>(
-    {}
-  );
 
   useEffect(() => {
     const serverSettings = ServerConnection.makeSettings();
@@ -43,28 +81,11 @@ function AIManagerComponent({
       });
   }, []);
 
-  const handleInstall = async (ext: IAIExtension): Promise<void> => {
-    const serverSettings = ServerConnection.makeSettings();
-    setInstalling(prev => ({ ...prev, [ext.pip_package]: true }));
-    setInstallErrors(prev => {
-      const next = { ...prev };
-      delete next[ext.pip_package];
-      return next;
+  const handleInstall = (ext: IAIExtension): void => {
+    void commands.execute(CommandIDs.installExtension, {
+      pip_package: ext.pip_package,
+      name: ext.name
     });
-
-    try {
-      await installExtension(ext.pip_package, serverSettings);
-      await loadExtensionHandlers(ext.import_name, serverSettings);
-      window.location.reload();
-    } catch (err) {
-      setInstalling(prev => ({ ...prev, [ext.pip_package]: false }));
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      console.error(`jupyter-ai-manager: failed to install ${ext.name}`, err);
-      setInstallErrors(prev => ({
-        ...prev,
-        [ext.pip_package]: `Installation failed: ${message}`
-      }));
-    }
   };
 
   if (loadError) {
@@ -105,27 +126,9 @@ function AIManagerComponent({
               {ext.installed ? (
                 <Badge>{trans.__('Installed')}</Badge>
               ) : (
-                <div className="jp-jupyter-ai-manager-actions">
-                  <Button
-                    appearance="accent"
-                    disabled={installing[ext.pip_package] ?? false}
-                    onClick={() => void handleInstall(ext)}
-                  >
-                    {installing[ext.pip_package] ? (
-                      <>
-                        <ProgressRing slot="start" />
-                        {trans.__('Installing\u2026')}
-                      </>
-                    ) : (
-                      trans.__('Install')
-                    )}
-                  </Button>
-                  {installErrors[ext.pip_package] && (
-                    <p className="jp-jupyter-ai-manager-error">
-                      {installErrors[ext.pip_package]}
-                    </p>
-                  )}
-                </div>
+                <Button appearance="accent" onClick={() => handleInstall(ext)}>
+                  {trans.__('Install')}
+                </Button>
               )}
             </li>
           ))}
@@ -138,13 +141,15 @@ function AIManagerComponent({
 export class AIManager extends ReactWidget {
   constructor(options: IAIManagerOptions) {
     super();
+    this._commands = options.commands;
     this._trans = options.trans;
     this.addClass('jp-jupyter-ai-manager-Widget');
   }
 
   render(): JSX.Element {
-    return <AIManagerComponent trans={this._trans} />;
+    return <AIManagerComponent commands={this._commands} trans={this._trans} />;
   }
 
+  private _commands: CommandRegistry;
   private _trans: TranslationBundle;
 }

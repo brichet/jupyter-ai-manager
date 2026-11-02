@@ -26,7 +26,7 @@ AI_EXTENSIONS = [
         "name": "AI lite",
         "pip_package": "jupyter-ai-lite",
         "import_name": "jupyter_ai_lite",
-        "description": "Lightweight AI integration for JupyterLab",
+        "description": "AI integration working in the browser (no server needed)",
         "homepage_url": "https://pypi.org/project/jupyter-ai-lite/",
     },
     {

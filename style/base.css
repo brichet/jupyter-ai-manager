@@ -74,3 +74,16 @@
   color: var(--jp-ui-font-color2);
   font-size: var(--jp-ui-font-size1);
 }
+
+.jp-jupyter-ai-manager-warning {
+  color: var(--jp-warn-color1);
+  font-weight: 600;
+}
+
+.jp-jupyter-ai-manager-installing {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
