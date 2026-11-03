@@ -3,6 +3,18 @@ import { ServerConnection } from '@jupyterlab/services';
 
 import { requestAPI } from './request';
 
+export interface IACPClient {
+  name: string;
+  executable: string;
+  description: string;
+  docs_url: string;
+  /**
+   * Command providing the ACP executable, when a one-liner exists.
+   */
+  install_command?: string;
+  available: boolean;
+}
+
 export interface IAIExtension {
   name: string;
   pip_package: string;
@@ -14,6 +26,10 @@ export interface IAIExtension {
 
 interface IExtensionsResponse {
   extensions: IAIExtension[];
+}
+
+interface IACPClientsResponse {
+  acp_clients: IACPClient[];
 }
 
 interface IActionReply {
@@ -42,6 +58,30 @@ export async function fetchAIExtensions(
     }
     throw new Error(
       `Failed to fetch extensions: ${err instanceof Error ? err.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
+ * Fetch the list of ACP clients and their availability status.
+ */
+export async function fetchACPClients(
+  serverSettings: ServerConnection.ISettings
+): Promise<IACPClient[]> {
+  try {
+    const response = await requestAPI<IACPClientsResponse>(
+      'acp-clients',
+      serverSettings
+    );
+    return response.acp_clients;
+  } catch (err) {
+    if (err instanceof ServerConnection.ResponseError) {
+      throw new Error(
+        `Failed to fetch ACP clients (${err.response.status}): ${err.message}`
+      );
+    }
+    throw new Error(
+      `Failed to fetch ACP clients: ${err instanceof Error ? err.message : 'Unknown error'}`
     );
   }
 }

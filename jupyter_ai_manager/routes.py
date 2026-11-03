@@ -1,6 +1,7 @@
 import importlib.metadata
 import json
 import os
+import shutil
 from typing import Any
 
 from jupyter_server.base.handlers import APIHandler
@@ -46,6 +47,64 @@ AI_EXTENSIONS = [
 ]
 
 
+ACP_CLIENTS = [
+    {
+        "name": "Claude",
+        "executable": "claude-agent-acp",
+        "description": "Claude Code as an ACP agent persona.",
+        "docs_url": "https://docs.anthropic.com/en/docs/claude-code/quickstart",
+        "install_command": "npm install -g @agentclientprotocol/claude-agent-acp",
+    },
+    {
+        "name": "Codex",
+        "executable": "codex-acp",
+        "description": "OpenAI Codex as an ACP agent persona.",
+        "docs_url": "https://developers.openai.com/codex/cli",
+        "install_command": "npm install -g @agentclientprotocol/codex-acp",
+    },
+    {
+        "name": "Copilot",
+        "executable": "copilot",
+        "description": "GitHub Copilot as an ACP agent persona.",
+        "docs_url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli",
+        "install_command": "npm install -g @github/copilot",
+    },
+    {
+        "name": "Goose",
+        "executable": "goose",
+        "description": "Block's Goose AI agent as an ACP persona.",
+        "docs_url": "https://block.github.io/goose/docs/getting-started/installation",
+    },
+    {
+        "name": "Kilo",
+        "executable": "kilo",
+        "description": "Kilo AI agent as an ACP persona.",
+        "docs_url": "https://kilo.ai/cli",
+        "install_command": "npm install -g @kilocode/cli",
+    },
+    {
+        "name": "Kiro",
+        "executable": "kiro-cli",
+        "description": "Kiro AI agent as an ACP persona.",
+        "docs_url": "https://kiro.dev/docs/cli/installation/",
+    },
+    {
+        "name": "Mistral Vibe",
+        "executable": "vibe-acp",
+        "description": "Mistral Vibe as an ACP agent persona.",
+        "docs_url": "https://docs.mistral.ai/mistral-vibe/introduction/install",
+        "install_command": "pip install mistral-vibe",
+    },
+    {
+        "name": "OpenCode",
+        "executable": "opencode",
+        "description": "OpenCode AI agent as an ACP persona.",
+        "docs_url": "https://opencode.ai/docs/#install",
+        "install_command": "npm install -g opencode-ai",
+    },
+]
+
+
 def _is_installed(pip_package: str) -> bool:
     try:
         importlib.metadata.version(pip_package)
@@ -62,6 +121,16 @@ class ExtensionsRouteHandler(APIHandler):
             for ext in AI_EXTENSIONS
         ]
         self.finish({"extensions": extensions})
+
+
+class AcpClientsRouteHandler(APIHandler):
+    @tornado.web.authenticated
+    def get(self):
+        clients = [
+            {**client, "available": shutil.which(client["executable"]) is not None}
+            for client in ACP_CLIENTS
+        ]
+        self.finish({"acp_clients": clients})
 
 
 class LoadExtensionRouteHandler(APIHandler):
@@ -181,6 +250,10 @@ def setup_route_handlers(web_app: Any) -> None:
         (
             url_path_join(base_url, "jupyter-ai-manager", "extensions"),
             ExtensionsRouteHandler,
+        ),
+        (
+            url_path_join(base_url, "jupyter-ai-manager", "acp-clients"),
+            AcpClientsRouteHandler,
         ),
         (
             url_path_join(base_url, "jupyter-ai-manager", "load"),

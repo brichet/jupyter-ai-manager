@@ -6,7 +6,12 @@ import { TranslationBundle } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
 import { Badge, Button, ProgressRing } from '@jupyter/react-components';
 
-import { IAIExtension, fetchAIExtensions } from './api';
+import {
+  IAIExtension,
+  IACPClient,
+  fetchAIExtensions,
+  fetchACPClients
+} from './api';
 import { CommandIDs } from './tokens';
 
 export class ConfirmInstallWidget extends ReactWidget {
@@ -64,20 +69,24 @@ function AIManagerComponent({
   trans: TranslationBundle;
 }): JSX.Element {
   const [extensions, setExtensions] = useState<IAIExtension[] | null>(null);
+  const [acpClients, setAcpClients] = useState<IACPClient[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const serverSettings = ServerConnection.makeSettings();
-    fetchAIExtensions(serverSettings)
-      .then(exts => setExtensions(exts))
+    Promise.all([
+      fetchAIExtensions(serverSettings),
+      fetchACPClients(serverSettings)
+    ])
+      .then(([exts, clients]) => {
+        setExtensions(exts);
+        setAcpClients(clients);
+      })
       .catch(err => {
         setLoadError(
-          err instanceof Error ? err.message : 'Failed to load extensions.'
+          err instanceof Error ? err.message : 'Failed to load data.'
         );
-        console.error(
-          'jupyter-ai-manager: failed to fetch extension list',
-          err
-        );
+        console.error('jupyter-ai-manager: failed to fetch data', err);
       });
   }, []);
 
@@ -96,7 +105,7 @@ function AIManagerComponent({
     );
   }
 
-  if (extensions === null) {
+  if (extensions === null || acpClients === null) {
     return (
       <div className="jp-jupyter-ai-manager-container">
         <ProgressRing />
@@ -117,24 +126,85 @@ function AIManagerComponent({
         <ul className="jp-jupyter-ai-manager-list">
           {extensions.map(ext => (
             <li key={ext.pip_package} className="jp-jupyter-ai-manager-item">
-              <div className="jp-jupyter-ai-manager-info">
-                <span className="jp-jupyter-ai-manager-name">{ext.name}</span>
-                <p className="jp-jupyter-ai-manager-description">
-                  {ext.description}
-                </p>
+              <div className="jp-jupyter-ai-manager-item-row">
+                <div className="jp-jupyter-ai-manager-info">
+                  <span className="jp-jupyter-ai-manager-name">{ext.name}</span>
+                  <p className="jp-jupyter-ai-manager-description">
+                    {ext.description}
+                  </p>
+                </div>
+                {ext.installed ? (
+                  <Badge>{trans.__('Installed')}</Badge>
+                ) : (
+                  <Button
+                    appearance="accent"
+                    onClick={() => handleInstall(ext)}
+                  >
+                    {trans.__('Install')}
+                  </Button>
+                )}
               </div>
-              {ext.installed ? (
-                <Badge>{trans.__('Installed')}</Badge>
-              ) : (
-                <Button appearance="accent" onClick={() => handleInstall(ext)}>
-                  {trans.__('Install')}
-                </Button>
-              )}
+              {ext.pip_package === ACP_CLIENT_PACKAGE &&
+                acpClients.length > 0 && (
+                  <ACPClientsDetails clients={acpClients} trans={trans} />
+                )}
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+/**
+ * Pip package of the ACP client extension, whose box lists the ACP agents.
+ */
+const ACP_CLIENT_PACKAGE = 'jupyter-ai-acp-client';
+
+/**
+ * Collapsible list of the ACP agents supported by the ACP client extension,
+ * with their availability and a link to their install docs when missing.
+ */
+function ACPClientsDetails({
+  clients,
+  trans
+}: {
+  clients: IACPClient[];
+  trans: TranslationBundle;
+}): JSX.Element {
+  const availableCount = clients.filter(client => client.available).length;
+  return (
+    <details className="jp-jupyter-ai-manager-acp">
+      <summary>
+        {trans.__(
+          'ACP adapters (%1/%2 available)',
+          availableCount,
+          clients.length
+        )}
+      </summary>
+      <ul>
+        {clients.map(client => (
+          <li
+            key={client.executable}
+            className={client.available ? 'jp-mod-available' : undefined}
+          >
+            <div>
+              <strong>{client.name}</strong> <span>{client.description}</span>
+              {client.install_command && (
+                <p>
+                  {trans.__('Install with:')}{' '}
+                  <code>{client.install_command}</code>
+                </p>
+              )}
+            </div>
+            {client.available && <Badge>{trans.__('Available')}</Badge>}
+            <a href={client.docs_url} target="_blank" rel="noreferrer">
+              {trans.__('docs')}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
