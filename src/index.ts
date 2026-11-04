@@ -16,12 +16,15 @@ import { ReadonlyPartialJSONObject } from '@lumino/coreutils';
 import { Menu } from '@lumino/widgets';
 
 import {
+  IACPClient,
   IAIExtension,
+  fetchACPClients,
   fetchAIExtensions,
+  installACPClient,
   installExtension,
   loadExtensionHandlers
 } from './api';
-import { CommandIDs } from './tokens';
+import { ACP_CLIENT_PACKAGE, CommandIDs } from './tokens';
 
 export { CommandIDs } from './tokens';
 
@@ -38,8 +41,12 @@ const plugin: JupyterFrontEndPlugin<void> = {
     mainMenu: IMainMenu | null,
     translator_: ITranslator | null
   ) => {
-    const { AIManager, ConfirmInstallWidget, InstallProgressWidget } =
-      await import('./manager');
+    const {
+      AIManager,
+      ConfirmACPInstallWidget,
+      ConfirmInstallWidget,
+      InstallProgressWidget
+    } = await import('./manager');
 
     const translator = translator_ ?? nullTranslator;
     const trans = translator.load('jupyter-ai');
@@ -203,6 +210,132 @@ const plugin: JupyterFrontEndPlugin<void> = {
             }
           },
           required: ['pip_package']
+        }
+      }
+    });
+
+    app.commands.addCommand(CommandIDs.installACPClient, {
+      label: (args: ReadonlyPartialJSONObject): string =>
+        args.name
+          ? trans.__('Install %1', args.name)
+          : trans.__('Install ACP client'),
+      caption: trans.__('Install an ACP client on the server'),
+      execute: async (args: ReadonlyPartialJSONObject): Promise<boolean> => {
+        const { name } = args;
+        if (typeof name !== 'string') {
+          await showErrorMessage(
+            trans.__('Installation Error'),
+            trans.__('No ACP client specified. Provide a name argument.')
+          );
+          return false;
+        }
+
+        let client: IACPClient | undefined;
+        let acpExtension: IAIExtension | undefined;
+        try {
+          const [clients, extensions] = await Promise.all([
+            fetchACPClients(serverSettings),
+            fetchAIExtensions(serverSettings)
+          ]);
+          client = clients.find(c => c.name === name);
+          acpExtension = extensions.find(
+            e => e.pip_package === ACP_CLIENT_PACKAGE
+          );
+        } catch (err) {
+          await showErrorMessage(
+            trans.__('Installation Error'),
+            trans.__(
+              'Failed to fetch the ACP client list: %1',
+              err instanceof Error ? err.message : String(err)
+            )
+          );
+          return false;
+        }
+        if (!client || !client.installable) {
+          await showErrorMessage(
+            trans.__('Installation Error'),
+            trans.__('"%1" cannot be installed from JupyterLab.', name)
+          );
+          return false;
+        }
+        // The ACP client extension is required to use the ACP clients.
+        const missingExtension =
+          acpExtension && !acpExtension.installed ? acpExtension : null;
+        if (client.available && !missingExtension) {
+          return true;
+        }
+
+        const confirm = await showDialog({
+          title: trans.__('Install %1', client.name),
+          body: new ConfirmACPInstallWidget(client, trans, missingExtension),
+          buttons: [
+            Dialog.cancelButton(),
+            Dialog.okButton({ label: trans.__('Install') })
+          ]
+        });
+        if (!confirm.button.accept) {
+          return false;
+        }
+
+        const progressDialog = new Dialog({
+          title: trans.__('Installing %1…', client.name),
+          body: new InstallProgressWidget(client.name, trans),
+          buttons: [],
+          hasClose: false
+        });
+        void progressDialog.launch();
+
+        try {
+          if (missingExtension) {
+            await installExtension(
+              missingExtension.pip_package,
+              serverSettings
+            );
+            await loadExtensionHandlers(
+              missingExtension.import_name,
+              serverSettings
+            );
+          }
+          const available =
+            client.available ||
+            (await installACPClient(client.name, serverSettings));
+          progressDialog.dispose();
+          if (missingExtension) {
+            // Reload to activate the frontend of the newly installed extension.
+            window.location.reload();
+            return available;
+          }
+          if (!available) {
+            await showDialog({
+              title: trans.__('%1 installed', client.name),
+              body: trans.__(
+                'The installation succeeded, but "%1" was not found on the server PATH. Restart the server to make it available.',
+                client.executable
+              ),
+              buttons: [Dialog.okButton()]
+            });
+          }
+          return available;
+        } catch (err) {
+          progressDialog.dispose();
+          console.error(`jupyter-ai-manager: failed to install ${name}`, err);
+          await showErrorMessage(
+            trans.__('Installation Error'),
+            err instanceof Error ? err.message : String(err)
+          );
+          return false;
+        }
+      },
+      describedBy: {
+        args: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              title: trans.__('ACP client name')
+            }
+          },
+          required: ['name']
         }
       }
     });

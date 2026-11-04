@@ -24,13 +24,17 @@
 }
 
 .jp-jupyter-ai-manager-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 12px;
   border: 1px solid var(--jp-border-color1);
   border-radius: 4px;
   background: var(--jp-layout-color1);
+}
+
+.jp-jupyter-ai-manager-item-row,
+.jp-jupyter-ai-manager-acp li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .jp-jupyter-ai-manager-info {
@@ -52,18 +56,6 @@
   color: var(--jp-ui-font-color2);
 }
 
-.jp-jupyter-ai-manager-badge {
-  font-size: var(--jp-ui-font-size0);
-  color: var(--jp-success-color1);
-  white-space: nowrap;
-}
-
-.jp-jupyter-ai-manager-unavailable {
-  font-size: var(--jp-ui-font-size0);
-  color: var(--jp-ui-font-color2);
-  white-space: nowrap;
-}
-
 .jp-jupyter-ai-manager-error {
   color: var(--jp-error-color1);
   font-size: var(--jp-ui-font-size0);
@@ -78,6 +70,58 @@
 .jp-jupyter-ai-manager-warning {
   color: var(--jp-warn-color1);
   font-weight: 600;
+}
+
+.jp-jupyter-ai-manager-acp {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--jp-border-color2);
+}
+
+.jp-jupyter-ai-manager-acp > summary {
+  cursor: pointer;
+}
+
+.jp-jupyter-ai-manager-acp ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jp-jupyter-ai-manager-acp li {
+  gap: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--jp-layout-color2);
+}
+
+.jp-jupyter-ai-manager-acp li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.jp-jupyter-ai-manager-acp li.jp-mod-available {
+  background: var(--jp-success-color3);
+}
+
+.jp-jupyter-ai-manager-acp span,
+.jp-jupyter-ai-manager-acp p {
+  margin: 0;
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-jupyter-ai-manager-acp code {
+  font-size: unset !important;
+  user-select: all;
+}
+
+.jp-jupyter-ai-manager-acp a {
+  color: var(--jp-brand-color1);
+  white-space: nowrap;
 }
 
 .jp-jupyter-ai-manager-installing {

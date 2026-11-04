@@ -1,6 +1,10 @@
+import asyncio
 import importlib.metadata
 import json
 import os
+import shlex
+import shutil
+import sys
 from typing import Any
 
 from jupyter_server.base.handlers import APIHandler
@@ -46,6 +50,64 @@ AI_EXTENSIONS = [
 ]
 
 
+ACP_CLIENTS = [
+    {
+        "name": "Claude",
+        "executable": "claude-agent-acp",
+        "description": "Claude Code as an ACP agent persona.",
+        "docs_url": "https://docs.anthropic.com/en/docs/claude-code/quickstart",
+        "install_command": "npm install -g @agentclientprotocol/claude-agent-acp",
+    },
+    {
+        "name": "Codex",
+        "executable": "codex-acp",
+        "description": "OpenAI Codex as an ACP agent persona.",
+        "docs_url": "https://developers.openai.com/codex/cli",
+        "install_command": "npm install -g @agentclientprotocol/codex-acp",
+    },
+    {
+        "name": "Copilot",
+        "executable": "copilot",
+        "description": "GitHub Copilot as an ACP agent persona.",
+        "docs_url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli",
+        "install_command": "npm install -g @github/copilot",
+    },
+    {
+        "name": "Goose",
+        "executable": "goose",
+        "description": "Block's Goose AI agent as an ACP persona.",
+        "docs_url": "https://block.github.io/goose/docs/getting-started/installation",
+    },
+    {
+        "name": "Kilo",
+        "executable": "kilo",
+        "description": "Kilo AI agent as an ACP persona.",
+        "docs_url": "https://kilo.ai/cli",
+        "install_command": "npm install -g @kilocode/cli",
+    },
+    {
+        "name": "Kiro",
+        "executable": "kiro-cli",
+        "description": "Kiro AI agent as an ACP persona.",
+        "docs_url": "https://kiro.dev/docs/cli/installation/",
+    },
+    {
+        "name": "Mistral Vibe",
+        "executable": "vibe-acp",
+        "description": "Mistral Vibe as an ACP agent persona.",
+        "docs_url": "https://docs.mistral.ai/mistral-vibe/introduction/install",
+        "install_command": "pip install mistral-vibe",
+    },
+    {
+        "name": "OpenCode",
+        "executable": "opencode",
+        "description": "OpenCode AI agent as an ACP persona.",
+        "docs_url": "https://opencode.ai/docs/#install",
+        "install_command": "npm install -g opencode-ai",
+    },
+]
+
+
 def _is_installed(pip_package: str) -> bool:
     try:
         importlib.metadata.version(pip_package)
@@ -62,6 +124,109 @@ class ExtensionsRouteHandler(APIHandler):
             for ext in AI_EXTENSIONS
         ]
         self.finish({"extensions": extensions})
+
+
+ACP_INSTALL_TIMEOUT = 600
+"""Maximum duration (in seconds) of an ACP client install command."""
+
+_acp_install_lock = asyncio.Lock()
+
+
+def _install_argv(client: dict) -> list[str] | None:
+    """
+    Return the arguments to run the install command of an ACP client on the
+    server, or None if it has no install command or its installer is missing.
+    """
+    command = client.get("install_command")
+    if not command:
+        return None
+    argv = shlex.split(command)
+    if argv[0] == "pip":
+        # Install into the Python environment running the server.
+        return [sys.executable, "-m", "pip", *argv[1:]]
+    if shutil.which(argv[0]) is None:
+        return None
+    return argv
+
+
+class AcpClientsRouteHandler(APIHandler):
+    @tornado.web.authenticated
+    def get(self):
+        clients = [
+            {
+                **client,
+                "available": shutil.which(client["executable"]) is not None,
+                "installable": _install_argv(client) is not None,
+            }
+            for client in ACP_CLIENTS
+        ]
+        self.finish({"acp_clients": clients})
+
+
+class AcpClientInstallRouteHandler(APIHandler):
+    @tornado.web.authenticated
+    async def post(self):
+        """
+        Run the install command of an ACP client, then refresh the personas so
+        that the new agent becomes available without restarting the server.
+        """
+        name = (self.get_json_body() or {}).get("name", "")
+        client = next((c for c in ACP_CLIENTS if c["name"] == name), None)
+        if client is None:
+            self.set_status(404)
+            self.finish({"message": f"Unknown ACP client '{name}'"})
+            return
+
+        argv = _install_argv(client)
+        if argv is None:
+            self.set_status(400)
+            self.finish(
+                {
+                    "message": f"'{name}' cannot be installed from JupyterLab, "
+                    "see its documentation instead."
+                }
+            )
+            return
+
+        command = client["install_command"]
+        async with _acp_install_lock:
+            try:
+                proc = await asyncio.create_subprocess_exec(
+                    *argv,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.STDOUT,
+                )
+            except OSError as exc:
+                self.set_status(500)
+                self.finish({"message": f"Failed to run `{command}`: {exc}"})
+                return
+            try:
+                output, _ = await asyncio.wait_for(
+                    proc.communicate(), timeout=ACP_INSTALL_TIMEOUT
+                )
+            except asyncio.TimeoutError:
+                proc.kill()
+                await proc.wait()
+                self.set_status(504)
+                self.finish({"message": f"`{command}` timed out"})
+                return
+
+        if proc.returncode != 0:
+            tail = output.decode(errors="replace").strip()[-2000:]
+            self.log.error(f"jupyter_ai_manager: `{command}` failed:\n{tail}")
+            self.set_status(500)
+            self.finish(
+                {
+                    "message": f"`{command}` failed "
+                    f"(exit code {proc.returncode}):\n{tail}"
+                }
+            )
+            return
+
+        available = shutil.which(client["executable"]) is not None
+        if available:
+            _refresh_persona_managers(self.application, self.log)
+        self.finish({"available": available})
 
 
 class LoadExtensionRouteHandler(APIHandler):
@@ -181,6 +346,14 @@ def setup_route_handlers(web_app: Any) -> None:
         (
             url_path_join(base_url, "jupyter-ai-manager", "extensions"),
             ExtensionsRouteHandler,
+        ),
+        (
+            url_path_join(base_url, "jupyter-ai-manager", "acp-clients"),
+            AcpClientsRouteHandler,
+        ),
+        (
+            url_path_join(base_url, "jupyter-ai-manager", "acp-clients", "install"),
+            AcpClientInstallRouteHandler,
         ),
         (
             url_path_join(base_url, "jupyter-ai-manager", "load"),
