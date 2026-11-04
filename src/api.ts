@@ -13,6 +13,14 @@ export interface IACPClient {
    */
   install_command?: string;
   available: boolean;
+  /**
+   * Whether the server can run the install command (e.g. npm is available).
+   */
+  installable: boolean;
+}
+
+interface IACPClientInstallResponse {
+  available: boolean;
 }
 
 export interface IAIExtension {
@@ -82,6 +90,38 @@ export async function fetchACPClients(
     }
     throw new Error(
       `Failed to fetch ACP clients: ${err instanceof Error ? err.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
+ * Run the install command of an ACP client on the server.
+ *
+ * @returns whether the ACP client executable is available after installation.
+ */
+export async function installACPClient(
+  name: string,
+  serverSettings: ServerConnection.ISettings
+): Promise<boolean> {
+  try {
+    const response = await requestAPI<IACPClientInstallResponse>(
+      'acp-clients/install',
+      serverSettings,
+      {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+    return response.available;
+  } catch (err) {
+    if (err instanceof ServerConnection.ResponseError) {
+      throw new Error(
+        `Failed to install ${name} (${err.response.status}): ${err.message}`
+      );
+    }
+    throw new Error(
+      `Failed to install ${name}: ${err instanceof Error ? err.message : 'Unknown error'}`
     );
   }
 }

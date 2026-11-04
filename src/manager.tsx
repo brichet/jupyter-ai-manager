@@ -12,7 +12,7 @@ import {
   fetchAIExtensions,
   fetchACPClients
 } from './api';
-import { CommandIDs } from './tokens';
+import { ACP_CLIENT_PACKAGE, CommandIDs } from './tokens';
 
 export class ConfirmInstallWidget extends ReactWidget {
   constructor(
@@ -33,6 +33,46 @@ export class ConfirmInstallWidget extends ReactWidget {
             'The page will be reloaded automatically after installation.'
           )}
         </p>
+      </div>
+    );
+  }
+}
+
+export class ConfirmACPInstallWidget extends ReactWidget {
+  /**
+   * @param _client - the ACP client to install.
+   * @param _trans - the translation bundle.
+   * @param _extension - the ACP client extension, when it must be installed too.
+   */
+  constructor(
+    private readonly _client: IACPClient,
+    private readonly _trans: TranslationBundle,
+    private readonly _extension: IAIExtension | null = null
+  ) {
+    super();
+  }
+
+  render(): JSX.Element {
+    return (
+      <div className="jp-jupyter-ai-manager-confirm">
+        {this._extension && (
+          <p>
+            {this._trans.__(
+              'The "%1" extension (%2) is required and will be installed first.',
+              this._extension.name,
+              this._extension.pip_package
+            )}
+          </p>
+        )}
+        <p>{this._trans.__('The following command will run on the server:')}</p>
+        <pre>{this._client.install_command}</pre>
+        {this._extension && (
+          <p className="jp-jupyter-ai-manager-warning">
+            {this._trans.__(
+              'The page will be reloaded automatically after installation.'
+            )}
+          </p>
+        )}
       </div>
     );
   }
@@ -97,6 +137,15 @@ function AIManagerComponent({
     });
   };
 
+  const handleInstallACPClient = async (client: IACPClient): Promise<void> => {
+    await commands.execute(CommandIDs.installACPClient, { name: client.name });
+    try {
+      setAcpClients(await fetchACPClients(ServerConnection.makeSettings()));
+    } catch (err) {
+      console.error('jupyter-ai-manager: failed to refresh ACP clients', err);
+    }
+  };
+
   if (loadError) {
     return (
       <div className="jp-jupyter-ai-manager-container">
@@ -146,7 +195,11 @@ function AIManagerComponent({
               </div>
               {ext.pip_package === ACP_CLIENT_PACKAGE &&
                 acpClients.length > 0 && (
-                  <ACPClientsDetails clients={acpClients} trans={trans} />
+                  <ACPClientsDetails
+                    clients={acpClients}
+                    onInstall={handleInstallACPClient}
+                    trans={trans}
+                  />
                 )}
             </li>
           ))}
@@ -157,19 +210,16 @@ function AIManagerComponent({
 }
 
 /**
- * Pip package of the ACP client extension, whose box lists the ACP agents.
- */
-const ACP_CLIENT_PACKAGE = 'jupyter-ai-acp-client';
-
-/**
  * Collapsible list of the ACP agents supported by the ACP client extension,
  * with their availability and a link to their install docs when missing.
  */
 function ACPClientsDetails({
   clients,
+  onInstall,
   trans
 }: {
   clients: IACPClient[];
+  onInstall: (client: IACPClient) => void;
   trans: TranslationBundle;
 }): JSX.Element {
   const availableCount = clients.filter(client => client.available).length;
@@ -197,7 +247,15 @@ function ACPClientsDetails({
                 </p>
               )}
             </div>
-            {client.available && <Badge>{trans.__('Available')}</Badge>}
+            {client.available ? (
+              <Badge>{trans.__('Available')}</Badge>
+            ) : (
+              client.installable && (
+                <Button appearance="accent" onClick={() => onInstall(client)}>
+                  {trans.__('Install')}
+                </Button>
+              )
+            )}
             <a href={client.docs_url} target="_blank" rel="noreferrer">
               {trans.__('docs')}
             </a>
