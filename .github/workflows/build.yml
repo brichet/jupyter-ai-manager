@@ -98,6 +98,41 @@ jobs:
         jupyter labextension list 2>&1 | grep -ie "jupyter-ai-manager.*OK"
         python -m jupyterlab.browser_check --no-browser-test
 
+  test_install:
+    name: Installation tests (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+
+    - name: Download extension package
+      uses: actions/download-artifact@v4
+      with:
+        name: extension-artifacts
+        path: dist
+
+    - name: Run the installation tests
+      shell: bash
+      run: |
+        set -eux
+        python .github/scripts/run_install_tests.py --package "$(ls dist/jupyter_ai_manager*.whl)" -vv -r ap
+
   integration-tests:
     name: Integration tests
     needs: build
