@@ -4,7 +4,9 @@ import json
 import os
 import shlex
 import shutil
+import subprocess
 import sys
+from functools import partial
 from typing import Any
 
 from jupyter_server.base.handlers import APIHandler
@@ -144,9 +146,11 @@ def _install_argv(client: dict) -> list[str] | None:
     if argv[0] == "pip":
         # Install into the Python environment running the server.
         return [sys.executable, "-m", "pip", *argv[1:]]
-    if shutil.which(argv[0]) is None:
+    # Use the resolved path, so that wrappers like `npm.cmd` run on Windows.
+    executable = shutil.which(argv[0])
+    if executable is None:
         return None
-    return argv
+    return [executable, *argv[1:]]
 
 
 class AcpClientsRouteHandler(APIHandler):
@@ -189,30 +193,32 @@ class AcpClientInstallRouteHandler(APIHandler):
             return
 
         command = client["install_command"]
+        # Run in a thread rather than with asyncio subprocesses, which are not
+        # supported by the selector event loop used by Jupyter Server on Windows.
         async with _acp_install_lock:
             try:
-                proc = await asyncio.create_subprocess_exec(
-                    *argv,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.STDOUT,
+                proc = await asyncio.get_running_loop().run_in_executor(
+                    None,
+                    partial(
+                        subprocess.run,
+                        argv,
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        timeout=ACP_INSTALL_TIMEOUT,
+                    ),
                 )
+            except subprocess.TimeoutExpired:
+                self.set_status(504)
+                self.finish({"message": f"`{command}` timed out"})
+                return
             except OSError as exc:
                 self.set_status(500)
                 self.finish({"message": f"Failed to run `{command}`: {exc}"})
                 return
-            try:
-                output, _ = await asyncio.wait_for(
-                    proc.communicate(), timeout=ACP_INSTALL_TIMEOUT
-                )
-            except asyncio.TimeoutError:
-                proc.kill()
-                await proc.wait()
-                self.set_status(504)
-                self.finish({"message": f"`{command}` timed out"})
-                return
 
         if proc.returncode != 0:
-            tail = output.decode(errors="replace").strip()[-2000:]
+            tail = proc.stdout.decode(errors="replace").strip()[-2000:]
             self.log.error(f"jupyter_ai_manager: `{command}` failed:\n{tail}")
             self.set_status(500)
             self.finish(
