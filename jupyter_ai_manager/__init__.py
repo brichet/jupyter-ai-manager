@@ -7,7 +7,7 @@ except ImportError:
     import warnings
     warnings.warn("Importing 'jupyter_ai_manager' outside a proper installation.")
     __version__ = "dev"
-from .routes import setup_route_handlers
+from .handlers import setup_route_handlers
 
 
 def _jupyter_labextension_paths():

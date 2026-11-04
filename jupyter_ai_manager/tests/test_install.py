@@ -14,7 +14,7 @@ import sys
 import jupyter_core.paths
 import pytest
 
-from ..routes import ACP_INSTALL_TIMEOUT
+from ..handlers import ACP_INSTALL_TIMEOUT
 
 
 
