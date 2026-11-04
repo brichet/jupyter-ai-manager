@@ -52,7 +52,6 @@ def jp_server_config(jp_server_config):
 
 @pytest.mark.skipif(shutil.which("npm") is None, reason="npm is not available")
 async def test_install_claude_acp_client(jp_fetch):
-    # When
     response = await jp_fetch(
         "jupyter-ai-manager",
         "acp-clients",
@@ -62,7 +61,6 @@ async def test_install_claude_acp_client(jp_fetch):
         request_timeout=ACP_INSTALL_TIMEOUT,
     )
 
-    # Then
     assert json.loads(response.body) == {"available": True}
     assert shutil.which("claude-agent-acp") is not None
 
@@ -75,7 +73,7 @@ async def test_install_claude_acp_client(jp_fetch):
 # Keep this test last: loading the server extensions in the test process cannot
 # be undone, and prevents the next test servers from starting.
 async def test_install_acp_client_extension(jp_fetch, jp_serverapp, monkeypatch):
-    # When: installing the package as the frontend does.
+    # Installing the package using handler.
     response = await jp_fetch(
         "lab",
         "api",
@@ -85,7 +83,6 @@ async def test_install_acp_client_extension(jp_fetch, jp_serverapp, monkeypatch)
         request_timeout=ACP_INSTALL_TIMEOUT,
     )
 
-    # Then
     payload = json.loads(response.body)
     assert payload["status"] == "ok", payload.get("message")
 
@@ -94,8 +91,7 @@ async def test_install_acp_client_extension(jp_fetch, jp_serverapp, monkeypatch)
     acp = next(e for e in extensions if e["pip_package"] == "jupyter-ai-acp-client")
     assert acp["installed"]
 
-    # When: loading the server extension without restarting the server. pip
-    # writes its server config in the environment, which pytest-jupyter hides.
+    # Test loading the server extension without restarting the server.
     monkeypatch.setattr(
         jupyter_core.paths,
         "ENV_CONFIG_PATH",
@@ -111,6 +107,5 @@ async def test_install_acp_client_extension(jp_fetch, jp_serverapp, monkeypatch)
         body=json.dumps({"import_name": "jupyter_ai_acp_client"}),
     )
 
-    # Then
     assert response.code == 200
     assert "jupyter_ai_acp_client" in jp_serverapp.extension_manager.linked_extensions

@@ -10,10 +10,8 @@ from ..handlers import ACP_CLIENTS, AI_EXTENSIONS, _install_argv
 
 
 async def test_pip_packages_list(jp_fetch):
-    # When
     response = await jp_fetch("jupyter-ai-manager", "extensions")
 
-    # Then
     assert response.code == 200
     payload = json.loads(response.body)
     default = sorted([ext["pip_package"] for ext in AI_EXTENSIONS])
@@ -23,10 +21,8 @@ async def test_pip_packages_list(jp_fetch):
 
 
 async def test_acp_clients_list(jp_fetch):
-    # When
     response = await jp_fetch("jupyter-ai-manager", "acp-clients")
 
-    # Then
     assert response.code == 200
     clients = json.loads(response.body)["acp_clients"]
     assert sorted(c["name"] for c in clients) == sorted(c["name"] for c in ACP_CLIENTS)
