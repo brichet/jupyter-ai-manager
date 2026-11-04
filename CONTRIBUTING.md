@@ -90,6 +90,14 @@ To execute them, run:
 pytest -vv -r ap --cov jupyter_ai_manager
 ```
 
+The installation tests, which install real packages from PyPI and npm, are
+skipped by `pytest`. To run them in a throwaway environment, which is deleted
+afterwards, run:
+
+```sh
+python .github/scripts/run_install_tests.py
+```
+
 #### Frontend tests
 
 This extension is using [Jest](https://jestjs.io/) for JavaScript code testing.
